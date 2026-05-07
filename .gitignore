@@ -1,0 +1,14 @@
+# Secrets — jamais committer
+credentials/
+*.env
+*.key
+*.pem
+.env*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.bak
