@@ -127,6 +127,67 @@ Si le VPS redémarre → vérifier que `n8n_nginx` container démarre bien.
 
 ---
 
+## GitHub — Archivage des projets
+
+### Repos par branche
+
+| Session | Repo GitHub | Visibilité | Status |
+|---------|-------------|------------|--------|
+| coordination-netroia | `captainNetroia/coordination-netroia` | Public | À créer (commit local prêt) |
+| site-netroia-tech | `captainNetroia/site-netroia-tech` | Public | ✅ Actif — branch main |
+| production-netroia | `captainNetroia/production-netroia` | Privé | ✅ Actif |
+| NetroPraxis | `captainNetroia/NetroPraxis` | Privé | ✅ Actif |
+| netro-automations | `captainNetroia/netro-automations` | À décider | ❌ À créer |
+
+### Credentials GitHub
+
+```
+PAT       : C:\Netroia\credentials\github-pat.env
+            → GITHUB_PAT (vérifier expiration sur github.com/settings/tokens)
+            → Scopes requis : repo, workflow
+User      : captainNetroia
+```
+
+### Protocole d'archivage (à exécuter par l'orchestrateur)
+
+```powershell
+# 1. Vérifier que le PAT est valide
+$pat = (Get-Content C:\Netroia\credentials\github-pat.env | Where-Object { $_ -match '^GITHUB_PAT=' }) -replace 'GITHUB_PAT=', ''
+Invoke-RestMethod -Uri "https://api.github.com/user" -Headers @{ Authorization = "Bearer $pat" }
+
+# 2. Créer un repo manquant via API GitHub
+$body = @{ name = "nom-repo"; description = "..."; private = $false } | ConvertTo-Json
+Invoke-RestMethod -Uri "https://api.github.com/user/repos" -Method Post `
+  -Headers @{ Authorization = "Bearer $pat"; Accept = "application/vnd.github+json" } `
+  -Body $body -ContentType "application/json"
+
+# 3. Pusher un repo local existant
+cd C:\Netroia\{projet}
+git remote add origin https://{PAT}@github.com/captainNetroia/{repo}.git
+git push -u origin main
+```
+
+### Cycle d'archivage recommandé
+
+À chaque fin de session ou jalon validé :
+
+```
+1. Vérifier git status dans chaque projet modifié
+2. Proposer commit avec message structuré (feat/fix/docs)
+3. Push vers GitHub
+4. Mettre à jour STATUS-BOARD.md avec l'état des repos
+5. Commit + push STATUS-BOARD.md dans coordination-netroia
+```
+
+### Règle d'archivage
+
+- **coordination-netroia** : committer après chaque mise à jour de STATUS-BOARD.md ou HANDOFFS.md
+- **site-netroia-tech** : committer après chaque déploiement validé
+- **netro-automations** : committer après chaque workflow stabilisé (export JSON depuis n8n)
+- **production-netroia** : committer après enrichissement GOD, Rules ou Skills
+
+---
+
 ## Règle méta de l'orchestrateur
 
 > Toute information qui appartient à UNE session reste dans cette session.
