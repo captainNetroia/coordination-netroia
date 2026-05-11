@@ -13,7 +13,8 @@
 ### HANDOFF-001 — n8n retourne 200 propre au formulaire site
 
 **Date ouverture** : 2026-05-06
-**Statut** : [OUVERT]
+**Statut** : [PARTIELLEMENT LIVRÉ — bloqué par HANDOFF-002]
+**Mis à jour** : 2026-05-07 — Diagnostic curl + Chrome DevTools (session coordination-netroia)
 
 **Émetteur** (qui doit livrer) : session `netro-automations`
 **Récepteur** (qui attend) : session `site-netroia-tech`
@@ -23,9 +24,18 @@
 > au webhook contact AVANT le traitement Gmail/Slack/Sheets.
 > Architecture cible : Webhook → Validation → Respond 200 → [Classification IA → Email → Slack → Sheets]
 
-**Critère de validation** :
-- Soumettre le formulaire sur https://netroia.tech
-- La réponse HTTP du webhook est exactement 200
+**État au 2026-05-07 — Diagnostic complet** :
+- curl → n8n : ✅ 200 OK + `{"success":true,"message":"Message recu..."}` en ~13 secondes
+- Chrome → n8n : ❌ ERR_ABORTED — **AbortController timeout 10s côté formulaire** (ligne 1714 index.html)
+- Chaîne causale : n8n répond après ~13s (pipeline IA complet) > 10s timeout JS → abort
+- CORS : ✅ OK (OPTIONS 204 vérifié). Nginx : ✅ config propre. TLS : fausse piste.
+- Email / Slack / Sheets : ❓ Non vérifiés (impossible depuis Chrome, ERR_ABORTED avant réponse)
+
+**Le fix n8n (Respond avant pipeline) reste la bonne approche** — pas de fix côté site nécessaire.
+
+**Critère de validation finale** :
+- Soumettre le formulaire sur https://netroia.tech depuis Chrome
+- La réponse HTTP du webhook est exactement 200 (plus d'ERR_ABORTED)
 - Le message de succès s'affiche côté site
 - Un email de confirmation arrive sur captain@netroia.com
 - Une ligne apparaît dans la Google Sheet CRM
@@ -33,17 +43,18 @@
 **Action requise côté site une fois livré** :
 - Session site-netroia-tech retire le contournement `ok = res.status > 0`
 - Rétablit `ok = res.ok` (comportement standard)
+- Ajoute un message d'erreur visible dans le `catch` block (actuellement silencieux)
 - Redéploie avec `deploy.ps1`
 
 **Documents de référence** :
 - `C:\Netroia\netro-automations\docs\PROMPT-COORDINATION-SITE-N8N.md`
-- `C:\Netroia\Production-NetroIA\Documentation-Projets\site-netroia-tech\logs.md` (section dette technique)
+- `C:\Netroia\Production-NetroIA\Documentation-Projets\site-netroia-tech\logs.md`
 
 ---
 
 ## Handoffs livrés (archivés)
 
-*Aucun pour l'instant — premier démarrage de la session coordinatrice.*
+*Aucun pour l'instant.*
 
 ---
 

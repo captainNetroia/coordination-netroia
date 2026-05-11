@@ -5,12 +5,12 @@
 
 ---
 
-## Vue d'ensemble — 2026-05-07
+## Vue d'ensemble — 2026-05-07 (mis à jour 13h16)
 
 | Branche | Version | État | Déployé | Bloquants |
 |---------|---------|------|---------|-----------|
-| site-netroia-tech | v0.4 | ✅ Production | https://netroia.tech | Aucun |
-| netro-automations | En cours | ⚠️ Partiel | n8n opérationnel | Workflow retourne 500 |
+| site-netroia-tech | v0.4 | ✅ Production | https://netroia.tech | catch silencieux formulaire |
+| netro-automations | En cours | ❌ Bloqué | n8n opérationnel | TLS renegotiation nginx → Chrome ERR_ABORTED |
 | NetroPraxis | — | ⏸️ Pause | — | — |
 
 ---
@@ -20,28 +20,38 @@
 ### [ACTIF] site → n8n (Formulaire Contact CRM)
 
 ```
-STATUS : ⚠️ PARTIEL — fonctionne avec contournement
+STATUS : ❌ BLOQUÉ — Chrome ERR_ABORTED (TLS renegotiation nginx)
+
+Diagnostic session coordination-netroia 2026-05-07 13h16 (curl + Chrome DevTools) :
+
+  curl → n8n   : ✅ 200 OK en ~13s
+                 {"success":true,"message":"Message recu. Nous vous repondons dans les 24h."}
+  Chrome → n8n : ❌ ERR_ABORTED — nginx demande 2x TLS renegotiation, Chrome refuse
+  UX site      : ❌ Formulaire silencieux (catch block, pas de message succès ni erreur)
+                 Le contournement ok = res.status > 0 est INOPÉRANT ici
+                 (fetch() throw avant d'avoir res quand ERR_ABORTED)
 
 Émetteur  : site-netroia-tech
-  - URL   : https://n8n.netroia.tech/webhook/contact-netroia
+  - URL     : https://n8n.netroia.tech/webhook/contact-netroia
   - Méthode : POST
   - Payload : { name, email, service, message, source, date }
-  - Fix actif : ok = res.status > 0 (contournement du 500 n8n)
 
 Récepteur : netro-automations (workflow "NetroIA - CRM Formulaire Contact")
-  - ÉTAPE 1 : Webhook + Validation ✅
-  - ÉTAPE 2 : Classification IA (gpt-4.1-mini) ✅
-  - ÉTAPE 3 : Génération email (gpt-4.1) ✅
-  - ÉTAPE 4 : Envoyer Email + Slack + Sheets + Réponse HTTP ⚠️
+  - Répond 200 ✅ (confirmé curl — l'ancien bloquant 500 semble résolu)
+  - Email / Slack / Sheets : ❓ INCONNU — non vérifié depuis Chrome ERR_ABORTED
 
-Problème root : ÉTAPE 4 échoue (credentials ou SPREADSHEET_ID manquant)
-→ Respond to Webhook jamais atteint → n8n retourne 500
-→ Site affiche succès grâce au contournement
+ROOT CAUSE RÉELLE (identifiée 2026-05-07 session coordination-netroia) :
+  n8n répond en ~13 secondes (pipeline complet : Validation + GPT + Email + Slack + Sheets)
+  Le formulaire a un AbortController timeout de 10 secondes (index.html ligne 1714)
+  13s > 10s → controller.abort() → Chrome ERR_ABORTED → catch block → silence
 
-Fix requis (session netro-automations) :
-  P1 : Déplacer Respond to Webhook EN DÉBUT de ÉTAPE 4
-  P2 : Créer Google Sheet "CRM NetroIA - Leads" + configurer SPREADSHEET_ID
-  P3 : Vérifier credentials Gmail, Slack, Sheets, OpenAI
+  Note : "TLS renegotiation" vue dans curl (Windows Schannel) = fausse piste.
+  CORS : OK (OPTIONS 204 confirmé). Nginx config : propre, aucun problème SSL.
+
+Fix requis (session netro-automations — HANDOFF-001 toujours valide) :
+  Repositionner "Respond to Webhook" AVANT le pipeline IA dans le workflow n8n
+  → n8n répond 200 en <2s → bien en dessous du timeout 10s du formulaire
+  → Pipeline IA/Email/Slack/Sheets s'exécute ensuite en asynchrone
 ```
 
 ---
@@ -61,21 +71,30 @@ SSL n8n.netroia   : ⚠️ Expire 2026-06-07 (31 jours) — À RENOUVELER EN PRI
 
 ## Prochaines actions par session
 
-### session netro-automations (PRIORITÉ HAUTE)
-- [ ] P1 — Repositionner Respond to Webhook avant Gmail/Slack
-- [ ] P2 — Créer Google Sheet CRM + configurer SPREADSHEET_ID
-- [ ] P3 — Valider credentials Gmail, Slack, Sheets, OpenAI
-- [ ] Tester bout-en-bout depuis le formulaire netroia.tech
+### VPS / infra (PRIORITÉ CRITIQUE)
+- [ ] SSH VPS → inspecter /opt/n8n/compose/nginx.conf
+- [ ] Identifier la directive qui déclenche TLS renegotiation
+- [ ] Corriger + restart container n8n_nginx
+- [ ] Valider avec Chrome DevTools : plus d'ERR_ABORTED sur POST webhook
 
-### session site-netroia-tech (BASSE PRIORITÉ)
+### session netro-automations (PRIORITÉ HAUTE — après fix nginx)
+- [ ] Vérifier que Email / Slack / Sheets s'exécutent bien (n8n logs)
+- [ ] Créer Google Sheet "CRM NetroIA - Leads" + configurer SPREADSHEET_ID
+- [ ] Valider credentials Gmail, Slack, Sheets, OpenAI
+- [ ] Tester flux complet bout-en-bout depuis Chrome
+
+### session site-netroia-tech (APRÈS fix nginx + n8n validé)
+- [ ] Retirer contournement `ok = res.status > 0` → rétablir `ok = res.ok`
+- [ ] Ajouter message d'erreur visible dans le catch block (UX dégradée actuellement)
 - [ ] Favicon `.ico` depuis logo-transparent.png
-- [ ] Retirer contournement `ok = res.status > 0` une fois n8n fixé
 - [ ] Renouvellement SSL avant 2026-06-07 (certbot renew)
 
 ### session coordination-netroia (cette session)
-- [ ] Valider le flux complet site → n8n une fois n8n fixé
-- [ ] Documenter le handoff résolu dans HANDOFFS.md
+- [x] Diagnostic webhook Chrome + curl — FAIT 2026-05-07
+- [x] Mise à jour STATUS-BOARD + HANDOFFS — FAIT 2026-05-07
+- [ ] Valider le flux complet une fois nginx fixé
+- [ ] Clôturer HANDOFF-001 et HANDOFF-002
 
 ---
 
-*Dernière mise à jour : 2026-05-07 — Session coordinatrice v1.0*
+*Dernière mise à jour : 2026-05-07 13h16 — Session coordinatrice v1.1*

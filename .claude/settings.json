@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\\Netroia\\coordination-netroia\\scripts\\git-auto-push.ps1 -ProjectPath C:\\Netroia\\coordination-netroia -RepoName coordination-netroia"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Bash(git -C \"C:\\\\Netroia\\\\site-netroia-tech\" remote -v)",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__fill_form",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(curl -v -X POST https://n8n.netroia.tech/webhook/contact-netroia -H 'Content-Type: application/json' -d '{\"name\":\"TEST curl\",\"email\":\"captain@netroia.com\",\"service\":\"Starter\",\"message\":\"Test technique orchestrateur\",\"source\":\"curl-test\",\"date\":\"2026-05-07\"}' --max-time 30)"
+    ],
+    "additionalDirectories": [
+      "C:\\Netroia"
+    ]
+  }
+}
