@@ -11,7 +11,7 @@
 |---------|---------|------|---------|-----------|
 | site-netroia-tech | v0.4 | ✅ Production | https://netroia.tech | catch silencieux formulaire — attend HANDOFF-001 |
 | netro-automations | En cours | ❌ Bloqué | n8n opérationnel | AbortController 10s > pipeline ~13s |
-| Pro-Gaming-Godot | v0.1.0 | 🚀 Setup complet | GitHub only | Aucun — workspace 100% opérationnel |
+| Pro-Gaming-Godot | v0.2 | 🎮 Phase 1 validée | GitHub only | En attente sprites PixSquare (REQUEST-001/002) |
 | NetroPraxis | — | ⏸️ Pause | — | — |
 
 ---
@@ -88,11 +88,19 @@ Setup complété :
   ✅ Documentation-Projets/ créé (7 fichiers)
   ✅ MCP Pro connecté ✅ (vert via session Antigravity IDE)
 
-Prochaine étape : Phase 1 — Fondations (v0.2)
-  → Joueur : CharacterBody2D, mouvement, saut, dash
-  → Tilemap basique premier monde
-  → Caméra suivi + limites
-  → Système HP/mort/respawn
+Phase 1 validée (2026-05-21) :
+  ✅ GL Compatibility (OpenGL 3.3) actif
+  ✅ Viewport 384×216 → 1152×648 pixel net
+  ✅ Fond dark fantasy #17101F
+  ✅ Joueur placeholder (bleu + 2 yeux) visible + physique OK
+  ✅ Sol 20 tiles + StaticBody2D collision
+  ✅ Input map : WASD/Espace/Shift/X/Z/F
+  ✅ Camera2D suivi fluide
+
+Prochaine étape : Phase 1 suite — Assets réels (v0.3)
+  ⏳ REQUEST-001 : Sprite Marcheur (4 frames idle minimum) → créateur PixSquare
+  ⏳ REQUEST-002 : Tileset Ashwood (2 tiles sol minimum) → créateur PixSquare
+  → Dès livraison : AnimationPlayer + TileSet avec vrais sprites
 ```
 
 ---
