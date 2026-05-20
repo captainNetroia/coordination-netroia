@@ -108,10 +108,14 @@ Prochaine étape : Phase 1 suite — Assets réels (v0.3)
 ## Prochaines actions par session
 
 ### 🔴 session netro-automations (PRIORITÉ CRITIQUE)
-- [ ] **SSL n8n.netroia.tech** : SSH VPS → `certbot renew --nginx -d n8n.netroia.tech` → expire 2026-06-07 (17j)
-- [ ] **HANDOFF-001** : Repositionner "Respond to Webhook" AVANT pipeline IA dans workflow CRM
-- [ ] Vérifier Email / Slack / Sheets s'exécutent en async après Respond
-- [ ] Tester flux complet bout-en-bout depuis Chrome (formulaire netroia.tech)
+- [ ] **SSL n8n.netroia.tech** : ⚠️ UTILISER WEBROOT (standalone échoue — port 80 Docker occupé)
+      `certbot certonly --webroot -w /opt/n8n/compose/nginx -d n8n.netroia.tech --non-interactive --agree-tos`
+      `docker exec n8n_nginx nginx -s reload`
+      → expire 2026-06-07 (17j) — Briefing complet : `docs/PROMPT-SESSION-NETRO-AUTOMATIONS-2026-05-21.md`
+- [ ] **HANDOFF-001** : Déplacer "Réponse HTTP 200" APRÈS "Extraire & Valider", AVANT "Classifier Demande"
+      Workflow `Icz9Mh20mWcZHHQy` — branche Webhook Contact uniquement
+- [ ] Test curl timing <3s + test navigateur formulaire
+- [ ] Marquer HANDOFF-001 [LIVRÉ] dans HANDOFFS.md
 
 ### 🟡 session site-netroia-tech (APRÈS livraison HANDOFF-001)
 - [x] **SSL netroia.tech** : Renouvelé 2026-05-21 → expire 2026-08-18 — webroot, config auto mis à jour ✅
@@ -120,11 +124,11 @@ Prochaine étape : Phase 1 suite — Assets réels (v0.3)
 - [ ] Redéployer avec `deploy.ps1`
 - [ ] Valider formulaire bout-en-bout depuis Chrome
 
-### 🚀 session Pro-Gaming-Godot (PRÊTE — peut démarrer maintenant)
-- [ ] Ouvrir session dans Antigravity IDE (dossier C:\Netroia\Pro-Gaming-Godot\)
-- [ ] Vérifier MCP Pro vert dans Godot (panneau bas)
-- [ ] Phase 1 : créer scène player.tscn (CharacterBody2D + sprite + collisions)
-- [ ] Implémenter mouvement horizontal + saut + dash
+### 🎮 session Pro-Gaming-Godot (Phase 1 validée — en attente sprites)
+- [x] Phase 1 validée — joueur placeholder, sol, caméra, input map ✅
+- [ ] REQUEST-001 : Sprite Marcheur (4 frames idle) — en attente PixSquare
+- [ ] REQUEST-002 : Tileset Ashwood (2 tiles sol) — en attente PixSquare
+- [ ] Phase 1 suite (v0.3) : AnimationPlayer + vrais sprites dès livraison assets
 
 ### session coordination-netroia (cette session — Orchestrateur)
 - [x] Diagnostic webhook Chrome + curl — FAIT 2026-05-07
