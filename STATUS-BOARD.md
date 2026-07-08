@@ -5,14 +5,41 @@
 
 ---
 
-## Vue d'ensemble — 2026-05-21 (mis à jour Orchestrateur)
+## Vue d'ensemble — 2026-07-08 (mis à jour, était obsolète depuis le 21/05)
+
+> **NOTE IMPORTANTE (2026-07-08)** : ce tableau n'avait pas été touché depuis le 21 mai — NEOGEN
+> (ex-VIVARIUM) est devenu le projet majeur du workspace depuis, absent de la version précédente.
+> Voir `C:\Netroia\CONTEXT-ACTIF.md` pour l'état RPG/XP complet et le détail des dernières
+> sessions — ce fichier-ci reste focalisé sur les bloquants ET liens cross-sessions.
 
 | Branche | Version | État | Déployé | Bloquants |
 |---------|---------|------|---------|-----------|
-| site-netroia-tech | v0.4 | ✅ Production | https://netroia.tech | catch silencieux formulaire — attend HANDOFF-001 |
-| netro-automations | En cours | ❌ Bloqué | n8n opérationnel | AbortController 10s > pipeline ~13s |
+| **NEOGEN** (ex-VIVARIUM) | v24+ | ✅ En prod | https://neogen.netroia.tech (VPS 76.13.53.162) | Ollama local (VPS 2 vCPU) trop lent pour génération réelle — avertissement ajouté 08/07 |
+| site-netroia-tech | v0.4 | ✅ Production | https://netroia.tech | à revérifier — état non confirmé depuis mai |
+| netro-automations | En cours | ⚠️ À revérifier | n8n opérationnel | AbortController 10s > pipeline ~13s (état mai, non reconfirmé) |
 | Pro-Gaming-Godot | v0.2 | 🎮 Phase 1 validée | GitHub only | En attente sprites PixSquare (REQUEST-001/002) |
 | NetroPraxis | — | ⏸️ Pause | — | — |
+
+---
+
+## NEOGEN — État détaillé (2026-07-08)
+
+```
+VPS         : 76.13.53.162 (Hostinger, Ubuntu 24.04 LTS, srv1792379) — DIFFÉRENT du VPS
+              netroia.tech/n8n (187.124.36.81) — ne pas confondre les deux VPS.
+SSH         : ssh -i C:\Users\adrie\.ssh\id_ed25519 root@76.13.53.162 — CONFIRMÉ fonctionnel
+              (une mémoire précédente affirmait à tort "pas d'accès SSH", corrigée le 08/07)
+Repos       : origin = captainNetroia/VIVARIUM.git, public = captainNetroia/NEOGEN.git
+              (le VPS clone "public" — TOUJOURS pousser sur les 2 remotes)
+Déploiement : webhook https://neogen.netroia.tech/_deploy/deploy (secret dans
+              credentials/neogen-deploy-webhook.env) → git pull + docker rebuild
+Ollama VPS  : installé le 05/07, qwen2.5, adressable via 172.20.0.1:11434 (interne Docker),
+              mais 2 vCPU seulement → /api/tags instantané, /v1/chat/completions réel TIMEOUT.
+              Décision 08/07 : garder tel quel + avertissement UI, ne pas upgrader le VPS pour
+              l'instant (coût non validé).
+Commits 08/07 : fa19e0c (fix mobile) → c103201 (refonte visuelle) → fb10929 (fix sécurité
+              paiement + fix Ollama local sur poste dev, distinct du pb Ollama-VPS ci-dessus)
+```
 
 ---
 
